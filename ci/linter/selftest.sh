@@ -200,6 +200,14 @@ case_ 0 "lint-spelling is dispatched by run-all.sh" \
 case_ 0 "lint-ci-runners is dispatched by run-all.sh" \
     bash -c 'ci/linter/run-all.sh --list | grep -q lint-ci-runners.sh'
 
+# Weekly action bumps must respect the exact-SHA selected-actions policy or a
+# syntactically valid Windows workflow is rejected before GitHub creates any
+# job.  The focused suite includes held, admitted, and unreadable-policy paths.
+case_ 0 "bump-actions respects selected-actions exact SHA policy" \
+    bash ci/tests/test_bump_actions.sh
+case_ 0 "actionlint adapter preserves self-repository validation" \
+    bash ci/tests/test_actionlint_compat.sh
+
 # Generated upstream ast-grep rules are immutable snapshots: codespell and
 # yamllint findings there cannot be fixed locally. The exclusion is narrow:
 # first-party rules/own must remain visible to both checkers.

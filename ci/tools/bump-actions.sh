@@ -55,6 +55,65 @@ FAILED=0
 # exactly one major) but fires the moment that stops being true.
 declare -A RESOLVED_SHA RESOLVED_TAG
 
+# A selected-actions policy may allow a third-party action by its exact commit
+# SHA.  In that case changing only the workflow pin makes GitHub reject the
+# whole workflow before it can create a job (the API reports
+# `startup_failure`, with no logs).  Keep the current allowed pin until the
+# candidate SHA has also been admitted at both the repository and organization
+# levels.  This is deliberately narrower than trying to reimplement all of
+# GitHub's pattern matching: an exact current-SHA entry is the predicate that
+# can be invalidated by this script, while wildcards and verified/GitHub-owned
+# allowances continue to cover every SHA of the same action.
+POLICY_REPO="${GITHUB_REPOSITORY:-}"
+policy_allows_bump() { # owner/repo old-sha new-sha
+    local action_repo="$1" old_sha="$2" new_sha="$3"
+    local owner scope allowed patterns
+
+    # GitHub-owned actions are controlled by github_owned_allowed rather than
+    # patterns_allowed.  The two owners used here are the GitHub-owned action
+    # namespaces present in this repository.
+    case "$action_repo" in
+        actions/* | github/*) return 0 ;;
+    esac
+
+    if [ -z "$POLICY_REPO" ]; then
+        POLICY_REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)"
+    fi
+    if ! printf '%s' "$POLICY_REPO" | grep -qE '^[^/]+/[^/]+$'; then
+        NOTES+=("FAILED $action_repo: could not resolve repository for selected-actions policy")
+        FAILED=1
+        return 1
+    fi
+
+    owner="${POLICY_REPO%%/*}"
+    for scope in "repos/$POLICY_REPO" "orgs/$owner"; do
+        if ! allowed="$(gh api "$scope/actions/permissions" -q .allowed_actions 2>/dev/null)" ||
+            [ -z "$allowed" ]; then
+            NOTES+=("FAILED $action_repo: could not read $scope Actions policy")
+            FAILED=1
+            return 1
+        fi
+        [ "$allowed" = selected ] || continue
+
+        if ! patterns="$(gh api "$scope/actions/permissions/selected-actions" \
+            -q '.patterns_allowed[]' 2>/dev/null)"; then
+            NOTES+=("FAILED $action_repo: could not read $scope selected-actions patterns")
+            FAILED=1
+            return 1
+        fi
+        # If the current SHA is named exactly, it is a real external gate on
+        # this update.  The candidate must be named exactly as well.  Retain
+        # all existing entries: this script observes policy; it never widens
+        # or mutates organization security settings.
+        if printf '%s\n' "$patterns" | grep -Fqx "$action_repo@$old_sha" &&
+            ! printf '%s\n' "$patterns" | grep -Fqx "$action_repo@$new_sha"; then
+            NOTES+=("hold $action_repo: $new_sha is not admitted by $scope selected-actions policy")
+            return 1
+        fi
+    done
+    return 0
+}
+
 # Collect every distinct owner/repo@sha # tag triple across .github/.
 # `uses:` values may carry a subpath (github/codeql-action/init), which is NOT
 # part of the repo for API purposes -- strip it to the first two segments.
@@ -138,6 +197,7 @@ for pin in "${PINS[@]}"; do
     new_tag="${RESOLVED_TAG[$key]}"
     [ "$new_sha" = "-" ] && continue
     [ "$new_sha" = "$sha" ] && continue
+    policy_allows_bump "$repo" "$sha" "$new_sha" || continue
 
     echo "bump $path: ${sha:0:12} ($tag) -> ${new_sha:0:12} ($new_tag)"
     CHANGED=1
