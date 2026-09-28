@@ -18,7 +18,7 @@ set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+trap 'rm -rf "${tmp:?}"' EXIT
 
 mapped=()
 for source in "$@"; do

@@ -72,7 +72,7 @@ MOCK
         sed 's/^/       | /' "$tmp/out" >&2
         rc=1
     fi
-    rm -rf "$tmp"
+    rm -rf "${tmp:?}"
 }
 
 # Negative/control: the old exact SHA remains pinned when the candidate has
