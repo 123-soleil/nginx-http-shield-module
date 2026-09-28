@@ -35,7 +35,7 @@ MOCK
         echo "FAIL $desc: expected exit $want, got $got" >&2
         rc=1
     fi
-    rm -rf "$tmp"
+    rm -rf "${tmp:?}"
 }
 
 case_ 0 'uses: $/.github/actions/local' "self-repository token is mapped for actionlint"
