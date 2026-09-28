@@ -1,4 +1,4 @@
-# sync-sha: 61bb2fbe8d86418c3201ee9b868f267b0b5d2841b34ceb8401e34665524e6a97
+# sync-sha: 3155cc510b42aa07e757bdea7f91e5f3770e18a903944db5d6a7f1395ee68ee9
 name: Lint
 
 on:
@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true

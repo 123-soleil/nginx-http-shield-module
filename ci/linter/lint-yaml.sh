@@ -69,8 +69,7 @@ mapfile -t WF < <(printf '%s\n' "${FILES[@]}" | grep -E '^\.github/workflows/' |
 if [ "${#WF[@]}" -gt 0 ]; then
     need actionlint "go install github.com/rhysd/actionlint/cmd/actionlint@latest  (see install-linters.sh)"
     say "actionlint (${#WF[@]} workflow(s))"
-    SHELLCHECK_OPTS=-Swarning \
-        actionlint -ignore 'label ".+" is unknown' "${WF[@]}" || rc=1
+    ci/linter/actionlint-compat.sh "${WF[@]}" || rc=1
 
     need zizmor "pipx install zizmor"
     say "zizmor (workflow security, pedantic)"

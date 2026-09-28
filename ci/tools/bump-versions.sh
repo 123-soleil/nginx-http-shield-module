@@ -129,6 +129,17 @@ else
     rm -f "$tools_out"
 fi
 
+# Action and tool bumps rewrite workflow content.  The lint gate hashes that
+# content with sync-stamp.sh, so a generated PR must regenerate the stamps in
+# the same transaction rather than reliably opening red and waiting for a
+# human-only repair commit.
+if [ "$DRY_RUN" = 0 ]; then
+    bash ci/tools/sync-stamp.sh
+    if ! git diff --quiet -- .github/ 2>/dev/null; then
+        CHANGED=1
+    fi
+fi
+
 if [ "$CHANGED" = 0 ]; then
     echo "everything up to date, nothing to bump"
 fi

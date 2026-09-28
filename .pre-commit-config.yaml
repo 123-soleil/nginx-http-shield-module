@@ -316,7 +316,9 @@ repos:
       # in both places.
       - id: actionlint
         name: actionlint (workflow syntax)
-        entry: env SHELLCHECK_OPTS=-Swarning actionlint -config-file .github/actionlint.yaml
+        # GitHub's secure `$/` self-repository form predates actionlint support;
+        # the adapter changes only that token in temporary copies (issue #711).
+        entry: ci/linter/actionlint-compat.sh
         language: system
         files: ^\.github/workflows/.*\.ya?ml$
         pass_filenames: true

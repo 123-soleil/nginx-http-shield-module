@@ -1,4 +1,4 @@
-# sync-sha: 843dd15997a07c98d83d2abafa1a31802d36088f1377f13c766025bf05fdc00e
+# sync-sha: c7683f6543dfac0f1239dd9a70b9f6a7afeebac6c0522863f4d1d320593cdef6
 name: Build and Test
 
 env:
@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
@@ -76,14 +76,15 @@ jobs:
           ( cd /tmp && grep " ${tarball}\$" actionlint.checksums \
               | sed 's#'"${tarball}"'#actionlint.tgz#' | sha256sum -c - )
           tar -xzf /tmp/actionlint.tgz -C /tmp actionlint
-          /tmp/actionlint -color .github/workflows/*.yml
+          PATH="/tmp:$PATH" ci/linter/actionlint-compat.sh \
+            .github/workflows/*.yml
 
       - name: Audit workflows (zizmor)
         run: |
           # Pinned: an unpinned scanner is both a supply-chain risk and a
           # source of surprise CI breakage. Fails the job on any finding, so a
           # reintroduced template injection cannot merge.
-          pip install --quiet 'zizmor==1.26.1'
+          pip install --quiet 'zizmor==1.30.1'
           zizmor --no-progress .github/workflows/
 
   build:
@@ -92,7 +93,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
@@ -107,7 +108,7 @@ jobs:
             build-essential curl libpcre2-dev zlib1g-dev
 
       - name: Restore build cache (ccache + source + build tree)
-        uses: ./.github/actions/build-cache
+        uses: $/.github/actions/build-cache
         with:
           mode: debug
           nginx-version: ${{ env.NGINX_VERSION }}
@@ -192,7 +193,7 @@ jobs:
       TEST_BASE_PORT: '19200'
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
@@ -247,7 +248,7 @@ jobs:
       TEST_BASE_PORT: '19260'
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
@@ -300,7 +301,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
@@ -326,7 +327,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
@@ -389,7 +390,7 @@ jobs:
       # submodules: the prober engine lives in ci/t/harness (nginx-module-testkit).
       # Without it ci/t/prober/run.sh bails, so this is not optional for this job.
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
@@ -448,7 +449,7 @@ jobs:
       TEST_BASE_PORT: '19320'
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
@@ -545,7 +546,7 @@ jobs:
       TEST_BASE_PORT: '19520'
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
           submodules: true
